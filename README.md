@@ -4,6 +4,8 @@
 
 **GitHub repository:** [https://github.com/Nithin-Bhargav-07/AgentTrace](https://github.com/Nithin-Bhargav-07/AgentTrace)
 
+**Judge Guide:** [View the Judge Guide](./docs/JUDGE_GUIDE.md)
+
 AgentTrace verifies what AI agents actually did against what they were authorized to do, using deterministic evidence evaluation and bounded AI explanations.
 
 **Architecture Principle:** AI does not decide what happened. Evidence and deterministic policy evaluation establish the result; AI explains the verified findings.
