@@ -4,39 +4,41 @@
 
 **GitHub repository:** [https://github.com/Nithin-Bhargav-07/AgentTrace](https://github.com/Nithin-Bhargav-07/AgentTrace)
 
+AgentTrace verifies what AI agents actually did against what they were authorized to do, using deterministic evidence evaluation and bounded AI explanations.
+
+**Architecture Principle:** AI does not decide what happened. Evidence and deterministic policy evaluation establish the result; AI explains the verified findings.
+
 ---
 
 ## 1. The Problem
 
-AI agents increasingly perform multi-step actions across tools, APIs, files, and external systems. 
+AI agents increasingly perform multi-step actions across:
+- APIs
+- Databases
+- Files
+- External services
+- Business systems
+- Tools
 
-After execution, it can be difficult to determine:
-- What the agent actually did
-- Whether those actions were authorized
-- Which evidence supports each action
-- Whether an apparent failure was real or contextual
+After execution, raw logs can make it difficult to establish:
+- What actually happened
+- Whether an action was authorized
+- Which evidence supports the finding
+- Whether missing evidence indicates an evidence gap
 - Whether remediation actually restored the system
 
-Traditional logs show events, but they do not necessarily provide an evidence-backed assessment of whether those actions were within authority.
+Ordinary logs show technical events but are insufficient for post-run accountability. They lack authority context, clear verification boundaries, and explicitly modeled evidence gaps.
 
 ---
 
 ## 2. The Solution
 
-**AgentTrace is a post-run verification and review system for AI-agent execution traces.**
+AgentTrace is a post-run verification and review system for AI-agent execution traces.
 
-AgentTrace helps teams close the accountability gap by doing the following:
-- Ingests an agent execution trace
-- Normalizes its events
-- Maps actions to declared authority
-- Evaluates actions using deterministic policies
-- Identifies evidence gaps
-- Produces evidence-linked findings
-- Provides bounded AI explanations
-- Supports human review
-- Produces portable evidence
+**Pipeline:**
+Trace Intake → Evidence Normalization → Authority Mapping → Deterministic Policy Evaluation → Evidence Gaps → Findings → Bounded AI Explanation → Human Review → Portable Evidence Packet
 
-**Important:** The deterministic policy engine establishes the underlying verdict. AI is NOT the component that decides what actually happened.
+**Important:** The AI layer does not determine the verdict.
 
 ---
 
@@ -51,142 +53,277 @@ AgentTrace helps teams close the accountability gap by doing the following:
 | Remediation may not actually recover a system | Recovery verification |
 | Review results can be difficult to share | Portable evidence packet |
 
+**Architectural Philosophy:** Verification and explanation are deliberately separated. A deterministic rule engine decides the verdict based on evidence. The AI model only receives a minimized bundle of these verified findings to explain them in plain language.
+
 ---
 
-## 4. Core Workflow
+## 4. How AgentTrace Works
 
-```text
-AI Agent
-   ↓
-Action Trace
-   ↓
-AgentTrace
-   ↓
-Evidence Normalization
-   ↓
-Authority Mapping
-   ↓
-Deterministic Policy Engine
-   ↓
-Findings + Evidence Gaps
-   ↓
-Bounded AI Explanation
-   ↓
-Human Review
-   ↓
-Portable Evidence Packet
+### Step 1 — Trace Intake
+Accept supported agent execution traces.
+
+### Step 2 — Source Integrity
+Preserve the exact source bytes and calculate SHA-256. This ensures cryptographically verifiable lineage from the raw execution log to the final manager decision.
+
+### Step 3 — Event Normalization
+Convert source records into canonical events.
+
+### Step 4 — Raw Event Accounting
+Account for every event, including events that are:
+- Mapped
+- Metadata
+- Ignored
+- Unparsed
+
+This strict accounting ensures an unmapped or unrecognized event is explicitly recorded rather than implied to have disappeared.
+
+### Step 5 — Authority Mapping
+Map observed actions against declared authority limits.
+
+### Step 6 — Deterministic Policy Evaluation
+Evaluate policy rules using deterministic logic without relying on AI assumptions.
+
+### Step 7 — Evidence Gap Detection
+Explicitly distinguish:
+*"No evidence was supplied"*
+from:
+*"The action did not happen."*
+
+### Step 8 — Findings and Incidents
+Group evidence into reviewable findings/incidents for the manager.
+
+### Step 9 — Bounded AI Explanation
+Create a minimized/redacted fact bundle. The AI receives only verified information, preventing it from hallucinating actions or inventing facts not present in the trace.
+
+### Step 10 — Human Review
+A human reviewer can inspect the evidence and record their final disposition.
+
+### Step 11 — Recovery Verification
+Recovery recommendations remain non-executing. Post-recovery evidence can be checked separately to verify restoration.
+
+### Step 12 — Portable Evidence Packet
+Export a self-contained evidence package for downstream review.
+
+---
+
+## 5. Product Tour
+
+### Trace Intake
+Upload or paste execution trace data from compatible sources.
+
+### Generic Mapping
+Map unfamiliar JSON fields interactively to the canonical event model.
+
+### Authority Review
+Review declared permissions and authority limits assigned to the agent.
+
+### Evidence Gap Mode
+Surface missing evidence instead of treating it as proof of safety.
+
+### Policy Checks
+Evaluate deterministic policy conditions based on the mapped events.
+
+### Incident Brief
+Group important findings into a reviewable summary.
+
+### Recovery Plan
+Generate proposed recovery steps without executing them.
+
+### Action Summary
+Summarize relevant actions in a digestible format.
+
+### Systems & Data Movement
+Show systems interacted with and relevant data movement across boundaries.
+
+### AI Boundary
+Show exactly what information is passed to the AI layer, ensuring transparency.
+
+### Evidence Drawer
+Inspect source-linked evidence directly tied to the original bytes.
+
+### Human Disposition
+Record the reviewer's final disposition (Accept / Investigate / Reject) separately from the deterministic verdict.
+
+### Replay / Verification
+Verify the evidence packet and replay the verification process where supported.
+
+---
+
+## 6. Supported Inputs
+
+### Native AgentTrace Trace
+Current native trace format.
+
+### OTLP / GenAI
+Supported narrow OTLP/GenAI profile.
+
+### Generic JSON
+Generic action/event JSON with interactive mapping.
+
+Unsupported formats such as arbitrary YAML, archives, binary bundles, or remote mixed bundles require conversion/adapters before they can be ingested.
+
+---
+
+## 7. Evidence Model
+
+AgentTrace treats evidence as the absolute foundation of the verification process, rather than asking a Large Language Model to loosely interpret raw logs. This model relies on:
+- Exact source-byte preservation
+- SHA-256 integrity
+- Canonical events
+- Raw-event accounting
+- Source event IDs
+- Evidence pointers
+- Evidence gaps
+- Deterministic findings
+- Citation linkage
+
+---
+
+## 8. Deterministic Policy Engine
+
+The Deterministic Policy Engine is responsible for the core decision logic. **The AI model does not determine the verdict.**
+
+Key components include:
+- **Authority constraints:** Hard limits on what the agent is permitted to do.
+- **Policy checks:** Deterministic rule evaluation against observed events.
+- **Deterministic verdict generation:** Strict binary evaluation (Pass/Fail) based on the rules.
+- **Finding generation:** Creation of evidence-backed findings.
+- **Evidence coverage:** Evaluating whether sufficient evidence exists.
+- **Policy decision ledger:** An immutable record of decisions made by the engine.
+
+---
+
+## 9. Recovery Verification
+
+AgentTrace can produce a recovery plan to suggest remediation steps after an unauthorized or failed action, but it **does NOT automatically execute remediation.**
+
+There is an important safety boundary between:
+- **Recovery proposed:** Suggestions generated for the human to review.
+- **Recovery verified:** Validating that the recovery actions actually took place (via a subsequent trace).
+
+---
+
+## 10. Portable Evidence Packet
+
+The Portable Evidence Packet allows another reviewer or system to inspect the verification result without relying solely on the original UI.
+
+The exported package contains:
+- Verified trace
+- Evidence metadata
+- Findings
+- Decision brief
+- Recovery plan
+- Integrity information
+- Verification metadata
+
+---
+
+## 11. AI / Granite Boundary
+
+AgentTrace uses **IBM Granite** through **watsonx.ai** strictly as a bounded explanation layer.
+
+**Architecture:**
+Deterministic evidence → minimized/redacted fact bundle → Granite → constrained output → validation → deterministic rendering/fallback
+
+Key boundaries:
+- Granite does not decide the verdict.
+- Granite does not receive unrestricted raw evidence.
+- Citations/findings are strictly validated against the fact bundle.
+- A deterministic fallback exists to ensure usability if the AI is unavailable.
+- Unsupported claims generated by the AI are rejected.
+
+---
+
+## 12. Architecture
+
+```mermaid
+flowchart LR
+    A[Trace Sources] --> B[Intake / Adapters]
+    B --> C[Source Integrity]
+    C --> D[Canonical Events]
+    D --> E[Raw Event Accounting]
+    E --> F[Policy Engine]
+    F --> G[Findings & Evidence Gaps]
+    G --> H[Fact Bundle]
+    H --> I[Granite Explanation]
+    G --> J[Human Review]
+    I --> J
+    J --> K[Evidence Packet]
 ```
-
-**Brief explanation:** AgentTrace takes raw execution traces from an agent, normalizes them, and deterministically compares them to declared authority limits. Verified findings and evidence gaps are surfaced and then explained by a bounded AI layer. Finally, a human reviews the findings and exports a portable evidence packet for downstream action.
-
----
-
-## 5. Key Features
-
-- **Trace ingestion:** Supports uploading or pasting JSON execution logs.
-- **Generic JSON mapping:** Allows interactive field mapping for unfamiliar JSON structures.
-- **OTLP/GenAI trace support:** Natively supports standard trace structures.
-- **Exact source-byte preservation:** Retains the unaltered bytes from the original log.
-- **SHA-256 integrity hashing:** Cryptographically binds all findings to the exact input.
-- **Canonical event normalization:** Maps diverse logs to standard events.
-- **Raw-event accounting:** Accounts for every unparsed, metadata, or mapped event.
-- **Authority evaluation:** Reconciles actions against manager-defined limits.
-- **Deterministic policy decisions:** Establishes verdicts using strict logic, not AI assumptions.
-- **Evidence-gap detection:** Identifies when traces lack sufficient material facts.
-- **Incident/action summaries:** Translates canonical events into plain language.
-- **Systems and data movement analysis:** Analyzes where external interactions occurred.
-- **Recovery-plan generation:** Creates safe, proposed steps for reverting or fixing issues.
-- **Recovery verification:** Binds proposed recovery steps to the evidence packet.
-- **Human disposition:** Leaves the ultimate Accept/Investigate/Reject decision to the reviewer.
-- **Portable evidence packets:** Packages a manager decision brief, validated trace, and recovery plan into one file.
-- **Offline/deterministic fallback:** Remains usable entirely without AI/network connectivity.
-- **Evidence-linked AI explanations:** Explains deterministic findings using only verified facts.
+*(Includes recovery verification paths integrated into Human Review and Evidence Packet outputs).*
 
 ---
 
-## 6. What Makes AgentTrace Different
-
-**Architecture Principle: AI does not decide what happened.**
-
-AgentTrace strictly separates verification from explanation:
-
-1. **Evidence is preserved first.** The exact source bytes are securely hashed.
-2. **Events are normalized deterministically.**
-3. **Authority and policy checks are deterministic.** A rule engine decides the verdict.
-4. **Findings are generated from verified evidence.**
-5. **A minimized/redacted fact bundle is then provided to the AI model.**
-6. **The AI explains verified findings rather than inventing evidence.**
-7. **Humans retain final disposition.** The AI explanation aids the reviewer, but the human decides the outcome.
-
----
-
-## 7. AI Boundary
-
-AgentTrace can use **IBM Granite** through **watsonx.ai** as a bounded explanation layer. 
-
-Granite receives a minimized/redacted fact bundle derived from deterministic verification results. **It does not determine the underlying verdict.** 
-
-If the live Granite model is unavailable, unreachable, or fails to produce valid citations, the application uses a fully functional **deterministic fallback** to ensure the review remains completely usable.
-
----
-
-## 8. Example Scenario
+## 13. Example Scenario
 
 An AI agent is authorized to:
 - Read customer records
 - Create a support ticket
 
-The execution trace shows:
-- Customer record read
-- Support ticket created
+Observed execution trace:
+- Read customer record
+- Create support ticket
 - Attempt to export customer data
 
-AgentTrace compares the observed actions against the declared authority. The unauthorized export is surfaced as an evidence-backed finding. The AI layer explains the finding using only the verified facts, allowing the manager to investigate the breach without having to comb through thousands of lines of raw logs.
+AgentTrace identifies the authority deviation using deterministic evaluation. The deterministic engine raises the unauthorized export as a finding. The AI layer is then passed the verified finding and explains the deviation in plain text, without becoming the source of truth for the verdict itself. *(Illustrative scenario).*
 
 ---
 
-## 9. Architecture
+## 14. Key Technical Principles
 
-```mermaid
-flowchart LR
-    A[AI Agent] --> B[Execution Trace]
-    B --> C[AgentTrace]
-    C --> D[Evidence Normalization]
-    D --> E[Authority & Policy Evaluation]
-    E --> F[Verified Findings]
-    F --> G[Minimized Fact Bundle]
-    G --> H[Granite / AI Explanation]
-    F --> I[Human Review]
-    H --> I
-    I --> J[Evidence Packet]
-```
+- **Deterministic before generative:** Verdicts are calculated by rules, not models.
+- **Evidence before explanation:** Facts are established before they are summarized.
+- **Explicit evidence gaps:** Absence of evidence is a finding, not an assumption of safety.
+- **Human disposition separate from verdict:** The human has the final say.
+- **Recovery is proposed, not automatically executed:** Remediation remains air-gapped.
+- **Offline/deterministic fallback:** Core verification functions without an internet connection.
 
 ---
 
-## 10. Technology Stack
+## 15. Technology Stack
 
-- React / Next.js
+- Next.js / React
 - TypeScript
 - Node.js
 - Zod
 - IBM Granite
 - watsonx.ai
-- JSON / OTLP
+- JSON
+- OTLP
 - Vercel
 
 ---
 
-## 11. Running Locally
+## 16. Project Structure
+
+```text
+src/
+  adapters/       # Ingestion adapters for various trace formats
+  ai/             # AI boundary, bounded Granite prompt generation and parsing
+  components/     # UI React components
+  core/           # Core deterministic logic, policy engine, and integrity
+  evaluation/     # Testing and evaluation logic
+  fixtures/       # Golden examples and test payloads
+  ui/             # App routing and page construction
+
+tests/            # Comprehensive unit and integration test suite
+examples/         # Example traces and generated packets
+docs/             # Technical guides and recovery planning
+```
+
+---
+
+## 17. Local Development
 
 Requirements: Node.js 24 and npm 11.
 
+Install dependencies and run the local development server:
 ```bash
 npm ci
 npm run dev
 ```
 
-For verification, use the provided testing suite:
-
+Run the deterministic verification test suite:
 ```bash
 npm run verify
 npm run eval
@@ -194,49 +331,45 @@ npm run eval
 
 ---
 
-## 12. Verification
+## 18. Verification
 
-Current verified state:
+Current local verified state:
 - **367 tests passing**
 - **Production build passing**
 - **Release audit passing**
 
 ---
 
-## 13. HackDevengers 2.0
+## 19. HackDevengers 2.0
 
-AgentTrace was built for HackDevengers 2.0 to solve the critical and practical real-world problem of trustworthy AI-agent execution. 
+AgentTrace is being submitted to HackDevengers 2.0 as an open-innovation solution for trustworthy AI-agent execution. 
 
-As enterprises adopt AI agents, there is a massive gap in verifying what those agents actually do. AgentTrace applies a novel **deterministic + AI architecture** to solve this, ensuring that human-in-the-loop verification is scalable and reliable. 
-
-With extensible trace adapters, policy-driven verification, and potential enterprise applicability, it represents a leap forward in holding autonomous systems accountable.
+The project combines deterministic policy evaluation, evidence integrity, explicit evidence gaps, bounded AI explanation, human review, and portable verification into one cohesive workflow for AI-agent accountability.
 
 ---
 
-## 14. Future Scope
+## 20. Future Scope
 
-While AgentTrace currently focuses on post-run reviews, future expansions could include:
+Planned future work:
 - Live agent monitoring
-- Additional trace formats
+- More trace formats
 - Policy-as-code
 - Enterprise workflow integrations
 - Broader agent/tool ecosystems
 - Continuous recovery verification
 - Richer analytics
 
-*(Note: These are planned directions and not current functionality.)*
-
 ---
 
-## 15. Limitations
+## 21. Limitations
 
-AgentTrace is a **post-run review aid**.
+AgentTrace is designed as a **post-run review aid**.
 
 It is **not**:
 - Live interception
 - Automatic enforcement
 - Legal/compliance certification
-- A tamper-proof logging system
-- A system for exposing or reconstructing private chain-of-thought
+- Tamper-proof logging
+- A system that exposes private chain-of-thought
 
-**Note on evidence:** The absence of an observed activity in a supplied trace does not prove that the activity never occurred outside that trace. AgentTrace's verdicts are bounded strictly to the evidence provided.
+**Note:** Conclusions are bounded entirely by the supplied evidence. The absence of an observed activity in a trace does not prove that the activity never occurred outside that trace.
