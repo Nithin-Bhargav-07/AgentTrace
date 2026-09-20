@@ -1,0 +1,38 @@
+{
+  "name": "agent-trace",
+  "version": "0.1.0",
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "module",
+  "description": "Evidence-backed verification and review for AI-agent execution traces.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "eval": "vitest run tests/evaluation/hackathonEvaluation.test.ts",
+    "release:audit": "node --experimental-strip-types scripts/release-audit.mjs",
+    "verify": "npm run lint && npm run typecheck && npm run test:run && npm run build && npm run release:audit"
+  },
+  "dependencies": {
+    "next": "16.3.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "26.3.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.3",
+    "typescript": "6.0.3",
+    "vitest": "4.1.11"
+  }
+}
